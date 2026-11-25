@@ -1,0 +1,6 @@
+{
+  "name": "Atelier Optic",
+  "description": "Premium optical storefront and digital eyewear studio with curated frames, eye test booking, private prescription management, cart & order tracking, WhatsApp concierge, and an admin management dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,303 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        ('email_verified' in request.auth.token &&
+         request.auth.token.email_verified == true &&
+         'email' in request.auth.token &&
+         request.auth.token.email == 'mahesh.celestial@gmail.com')
+      );
+    }
+
+    function isNonEmptyStr(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isOptionalStr(data, field, maxLen) {
+      return !(field in data) || (data[field] is string && data[field].size() <= maxLen);
+    }
+
+    function isValidStoreConfig(data) {
+      return isNonEmptyStr(data.shopName, 1, 80) &&
+             isOptionalStr(data, 'tagline', 160) &&
+             isNonEmptyStr(data.heroHeadline, 1, 120) &&
+             isOptionalStr(data, 'heroSubheadline', 240) &&
+             isOptionalStr(data, 'promoBannerText', 160) &&
+             isNonEmptyStr(data.address, 1, 240) &&
+             isNonEmptyStr(data.mobileNumber, 1, 40) &&
+             isNonEmptyStr(data.whatsappNumber, 1, 40) &&
+             isNonEmptyStr(data.email, 1, 120) &&
+             isNonEmptyStr(data.mapsQuery, 1, 200) &&
+             isNonEmptyStr(data.openingHours, 1, 200) &&
+             isOptionalStr(data, 'instagramUrl', 240) &&
+             isOptionalStr(data, 'facebookUrl', 240) &&
+             isOptionalStr(data, 'seoTitle', 120) &&
+             isOptionalStr(data, 'seoDescription', 300) &&
+             (!('googleReviewRating' in data) || (data.googleReviewRating is number && data.googleReviewRating >= 0 && data.googleReviewRating <= 5)) &&
+             (!('googleReviewCount' in data) || (data.googleReviewCount is int && data.googleReviewCount >= 0)) &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidProduct(data) {
+      return isNonEmptyStr(data.name, 1, 120) &&
+             isNonEmptyStr(data.brand, 1, 80) &&
+             isNonEmptyStr(data.sku, 1, 40) &&
+             isNonEmptyStr(data.category, 1, 60) &&
+             data.price is number && data.price >= 0 && data.price <= 1000000 &&
+             data.discountPercent is int && data.discountPercent >= 0 && data.discountPercent <= 90 &&
+             isNonEmptyStr(data.description, 1, 1000) &&
+             isNonEmptyStr(data.frameMaterial, 1, 80) &&
+             isNonEmptyStr(data.frameColour, 1, 80) &&
+             isNonEmptyStr(data.frameShape, 1, 80) &&
+             isNonEmptyStr(data.frameSize, 1, 40) &&
+             isNonEmptyStr(data.lensType, 1, 80) &&
+             data.stockCount is int && data.stockCount >= 0 && data.stockCount <= 100000 &&
+             data.popularityScore is int && data.popularityScore >= 0 &&
+             data.featured is bool &&
+             data.bestSeller is bool &&
+             data.newArrival is bool &&
+             data.specialOffer is bool &&
+             isOptionalStr(data, 'imageKey', 80) &&
+             isOptionalStr(data, 'imageUri', 2000) &&
+             data.galleryKeys is list && data.galleryKeys.size() <= 6 &&
+             (data.galleryKeys.size() == 0 || data.galleryKeys[0] is string) &&
+             isOptionalStr(data, 'seoSlug', 120) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidTestimonial(data) {
+      return isNonEmptyStr(data.customerName, 1, 80) &&
+             data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+             isNonEmptyStr(data.quote, 1, 500) &&
+             isOptionalStr(data, 'framePurchased', 120) &&
+             data.verifiedGoogleReview is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidAppointment(data) {
+      return isNonEmptyStr(data.userId, 1, 128) &&
+             isNonEmptyStr(data.fullName, 1, 100) &&
+             isNonEmptyStr(data.mobileNumber, 5, 30) &&
+             isNonEmptyStr(data.email, 3, 120) &&
+             isNonEmptyStr(data.appointmentDate, 4, 40) &&
+             isNonEmptyStr(data.preferredTime, 2, 40) &&
+             data.serviceRequired in [
+               'Eye examination',
+               'Prescription glasses',
+               'Contact lens consultation',
+               'Frame consultation',
+               'Lens replacement'
+             ] &&
+             isOptionalStr(data, 'message', 500) &&
+             data.status in ['Pending', 'Confirmed', 'Completed', 'Cancelled'] &&
+             isOptionalStr(data, 'adminNotes', 400) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPrescription(data) {
+      return isNonEmptyStr(data.userId, 1, 128) &&
+             isNonEmptyStr(data.customerName, 1, 100) &&
+             isNonEmptyStr(data.phoneNumber, 5, 30) &&
+             isOptionalStr(data, 'rightSph', 20) &&
+             isOptionalStr(data, 'rightCyl', 20) &&
+             isOptionalStr(data, 'rightAxis', 20) &&
+             isOptionalStr(data, 'leftSph', 20) &&
+             isOptionalStr(data, 'leftCyl', 20) &&
+             isOptionalStr(data, 'leftAxis', 20) &&
+             isOptionalStr(data, 'addPower', 20) &&
+             isOptionalStr(data, 'pd', 20) &&
+             isNonEmptyStr(data.lensType, 1, 80) &&
+             isOptionalStr(data, 'attachmentNote', 240) &&
+             isOptionalStr(data, 'notes', 500) &&
+             data.status in ['Submitted', 'Reviewed', 'Quoted', 'Fulfilled'] &&
+             (!('quotedPrice' in data) || (data.quotedPrice is number && data.quotedPrice >= 0 && data.quotedPrice <= 1000000)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidOrder(data) {
+      return isNonEmptyStr(data.userId, 1, 128) &&
+             isNonEmptyStr(data.customerName, 1, 100) &&
+             isNonEmptyStr(data.customerPhone, 5, 30) &&
+             isOptionalStr(data, 'customerEmail', 120) &&
+             isNonEmptyStr(data.deliveryAddress, 5, 300) &&
+             isNonEmptyStr(data.itemsSummary, 1, 1000) &&
+             data.itemLines is list && data.itemLines.size() >= 1 && data.itemLines.size() <= 30 &&
+             data.itemLines[0] is string &&
+             data.totalAmount is number && data.totalAmount >= 0 && data.totalAmount <= 10000000 &&
+             isOptionalStr(data, 'orderNotes', 400) &&
+             isNonEmptyStr(data.paymentMethod, 1, 60) &&
+             data.status in ['Pending', 'Confirmed', 'Processing', 'Ready', 'Delivered', 'Cancelled'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidEnquiry(data) {
+      return isNonEmptyStr(data.userId, 1, 128) &&
+             isNonEmptyStr(data.customerName, 1, 100) &&
+             isOptionalStr(data, 'phone', 30) &&
+             isNonEmptyStr(data.enquiryType, 1, 60) &&
+             isNonEmptyStr(data.subject, 1, 160) &&
+             isNonEmptyStr(data.message, 1, 800) &&
+             data.status in ['Open', 'Replied', 'Closed'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /store_config/{configId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && isValidId(configId) && isValidStoreConfig(incoming()) &&
+                       incoming().keys().hasAll(['shopName', 'heroHeadline', 'address', 'mobileNumber', 'whatsappNumber', 'email', 'mapsQuery', 'openingHours', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['shopName', 'tagline', 'heroHeadline', 'heroSubheadline', 'promoBannerText', 'address', 'mobileNumber', 'whatsappNumber', 'email', 'mapsQuery', 'openingHours', 'instagramUrl', 'facebookUrl', 'seoTitle', 'seoDescription', 'googleReviewRating', 'googleReviewCount', 'updatedAt']);
+      allow update: if isAdmin() && isValidId(configId) && isValidStoreConfig(incoming()) &&
+                       incoming().keys().hasOnly(['shopName', 'tagline', 'heroHeadline', 'heroSubheadline', 'promoBannerText', 'address', 'mobileNumber', 'whatsappNumber', 'email', 'mapsQuery', 'openingHours', 'instagramUrl', 'facebookUrl', 'seoTitle', 'seoDescription', 'googleReviewRating', 'googleReviewCount', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(configId);
+    }
+
+    match /products/{productId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) &&
+                       incoming().keys().hasAll(['name', 'brand', 'sku', 'category', 'price', 'discountPercent', 'description', 'frameMaterial', 'frameColour', 'frameShape', 'frameSize', 'lensType', 'stockCount', 'popularityScore', 'featured', 'bestSeller', 'newArrival', 'specialOffer', 'imageKey', 'galleryKeys', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['name', 'brand', 'sku', 'category', 'price', 'discountPercent', 'description', 'frameMaterial', 'frameColour', 'frameShape', 'frameSize', 'lensType', 'stockCount', 'popularityScore', 'featured', 'bestSeller', 'newArrival', 'specialOffer', 'imageKey', 'imageUri', 'galleryKeys', 'seoSlug', 'createdAt', 'updatedAt']);
+      allow update: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['name', 'brand', 'sku', 'category', 'price', 'discountPercent', 'description', 'frameMaterial', 'frameColour', 'frameShape', 'frameSize', 'lensType', 'stockCount', 'popularityScore', 'featured', 'bestSeller', 'newArrival', 'specialOffer', 'imageKey', 'imageUri', 'galleryKeys', 'seoSlug', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    match /testimonials/{testimonialId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && isValidId(testimonialId) && isValidTestimonial(incoming()) &&
+                       incoming().keys().hasAll(['customerName', 'rating', 'quote', 'verifiedGoogleReview', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['customerName', 'rating', 'quote', 'framePurchased', 'verifiedGoogleReview', 'createdAt', 'updatedAt']);
+      allow update: if isAdmin() && isValidId(testimonialId) && isValidTestimonial(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['customerName', 'rating', 'quote', 'framePurchased', 'verifiedGoogleReview', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(testimonialId);
+    }
+
+    match /appointments/{appointmentId} {
+      allow get: if isValidId(appointmentId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidId(appointmentId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().status == 'Pending' &&
+                       isValidAppointment(incoming()) &&
+                       incoming().keys().hasAll(['userId', 'fullName', 'mobileNumber', 'email', 'appointmentDate', 'preferredTime', 'serviceRequired', 'status', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'fullName', 'mobileNumber', 'email', 'appointmentDate', 'preferredTime', 'serviceRequired', 'message', 'status', 'adminNotes', 'createdAt', 'updatedAt']);
+      allow update: if isSignedIn() && isValidId(appointmentId) &&
+                       isValidAppointment(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'adminNotes', 'updatedAt'])) ||
+                         (existing().userId == request.auth.uid &&
+                          existing().status == 'Pending' &&
+                          incoming().status == 'Cancelled' &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']))
+                       );
+      allow delete: if isAdmin() && isValidId(appointmentId);
+    }
+
+    match /prescriptions/{prescriptionId} {
+      allow get: if isValidId(prescriptionId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidId(prescriptionId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().status == 'Submitted' &&
+                       isValidPrescription(incoming()) &&
+                       incoming().keys().hasAll(['userId', 'customerName', 'phoneNumber', 'lensType', 'status', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'customerName', 'phoneNumber', 'rightSph', 'rightCyl', 'rightAxis', 'leftSph', 'leftCyl', 'leftAxis', 'addPower', 'pd', 'lensType', 'attachmentNote', 'notes', 'status', 'quotedPrice', 'createdAt', 'updatedAt']);
+      allow update: if isAdmin() && isValidId(prescriptionId) &&
+                       isValidPrescription(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['status', 'quotedPrice', 'notes', 'updatedAt']);
+      allow delete: if isValidId(prescriptionId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+    }
+
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidId(orderId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().status == 'Pending' &&
+                       isValidOrder(incoming()) &&
+                       incoming().keys().hasAll(['userId', 'customerName', 'customerPhone', 'deliveryAddress', 'itemsSummary', 'itemLines', 'totalAmount', 'paymentMethod', 'status', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'customerName', 'customerPhone', 'customerEmail', 'deliveryAddress', 'itemsSummary', 'itemLines', 'totalAmount', 'orderNotes', 'paymentMethod', 'status', 'createdAt', 'updatedAt']);
+      allow update: if isSignedIn() && isValidId(orderId) &&
+                       isValidOrder(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'orderNotes', 'updatedAt'])) ||
+                         (existing().userId == request.auth.uid &&
+                          existing().status == 'Pending' &&
+                          incoming().status == 'Cancelled' &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']))
+                       );
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+    match /enquiries/{enquiryId} {
+      allow get: if isValidId(enquiryId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidId(enquiryId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().status == 'Open' &&
+                       isValidEnquiry(incoming()) &&
+                       incoming().keys().hasAll(['userId', 'customerName', 'enquiryType', 'subject', 'message', 'status', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'customerName', 'phone', 'enquiryType', 'subject', 'message', 'status', 'createdAt', 'updatedAt']);
+      allow update: if isAdmin() && isValidId(enquiryId) &&
+                       isValidEnquiry(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(enquiryId);
+    }
+
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && (isAdmin() || (isSignedIn() && request.auth.uid == uid));
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(uid) &&
+                       isNonEmptyStr(incoming().email, 3, 120) &&
+                       isOptionalStr(incoming(), 'displayName', 100) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().keys().hasAll(['email', 'createdAt']) &&
+                       incoming().keys().hasOnly(['email', 'displayName', 'createdAt']);
+      allow update: if isAdmin() && isValidId(uid) &&
+                       incoming().createdAt == existing().createdAt &&
+                       isNonEmptyStr(incoming().email, 3, 120) &&
+                       isOptionalStr(incoming(), 'displayName', 100) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName']);
+      allow delete: if isAdmin() && isValidId(uid);
+    }
+  }
+}

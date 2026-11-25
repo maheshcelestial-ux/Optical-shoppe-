@@ -1,0 +1,206 @@
+{
+  "entities": {
+    "StoreConfig": {
+      "title": "StoreConfig",
+      "description": "Editable storefront configuration, contact info, opening hours, banners, and SEO settings.",
+      "type": "object",
+      "properties": {
+        "shopName": { "type": "string" },
+        "tagline": { "type": "string" },
+        "heroHeadline": { "type": "string" },
+        "heroSubheadline": { "type": "string" },
+        "promoBannerText": { "type": "string" },
+        "address": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "mapsQuery": { "type": "string" },
+        "openingHours": { "type": "string" },
+        "instagramUrl": { "type": "string" },
+        "facebookUrl": { "type": "string" },
+        "seoTitle": { "type": "string" },
+        "seoDescription": { "type": "string" },
+        "googleReviewRating": { "type": "number" },
+        "googleReviewCount": { "type": "integer" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["shopName", "heroHeadline", "address", "mobileNumber", "whatsappNumber", "email", "mapsQuery", "openingHours", "updatedAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Optical frame, sunglasses, contact lens, or ophthalmic lens product in the store catalogue.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "brand": { "type": "string" },
+        "sku": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "discountPercent": { "type": "integer" },
+        "description": { "type": "string" },
+        "frameMaterial": { "type": "string" },
+        "frameColour": { "type": "string" },
+        "frameShape": { "type": "string" },
+        "frameSize": { "type": "string" },
+        "lensType": { "type": "string" },
+        "stockCount": { "type": "integer" },
+        "popularityScore": { "type": "integer" },
+        "featured": { "type": "boolean" },
+        "bestSeller": { "type": "boolean" },
+        "newArrival": { "type": "boolean" },
+        "specialOffer": { "type": "boolean" },
+        "imageKey": { "type": "string" },
+        "imageUri": { "type": "string" },
+        "galleryKeys": { "type": "array" },
+        "seoSlug": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "brand", "sku", "category", "price", "discountPercent", "description", "frameMaterial", "frameColour", "frameShape", "frameSize", "lensType", "stockCount", "popularityScore", "featured", "bestSeller", "newArrival", "specialOffer", "imageKey", "galleryKeys", "createdAt", "updatedAt"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Verified customer review and testimonial.",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "rating": { "type": "integer" },
+        "quote": { "type": "string" },
+        "framePurchased": { "type": "string" },
+        "verifiedGoogleReview": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerName", "rating", "quote", "verifiedGoogleReview", "createdAt", "updatedAt"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Eye test and consultation appointment booking.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "appointmentDate": { "type": "string" },
+        "preferredTime": { "type": "string" },
+        "serviceRequired": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Confirmed", "Completed", "Cancelled"] },
+        "adminNotes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "fullName", "mobileNumber", "email", "appointmentDate", "preferredTime", "serviceRequired", "status", "createdAt", "updatedAt"]
+    },
+    "Prescription": {
+      "title": "Prescription",
+      "description": "Private optical prescription record and lens quotation request.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "rightSph": { "type": "string" },
+        "rightCyl": { "type": "string" },
+        "rightAxis": { "type": "string" },
+        "leftSph": { "type": "string" },
+        "leftCyl": { "type": "string" },
+        "leftAxis": { "type": "string" },
+        "addPower": { "type": "string" },
+        "pd": { "type": "string" },
+        "lensType": { "type": "string" },
+        "attachmentNote": { "type": "string" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["Submitted", "Reviewed", "Quoted", "Fulfilled"] },
+        "quotedPrice": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "customerName", "phoneNumber", "lensType", "status", "createdAt", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer eyewear order or boutique enquiry order.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "deliveryAddress": { "type": "string" },
+        "itemsSummary": { "type": "string" },
+        "itemLines": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "orderNotes": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Confirmed", "Processing", "Ready", "Delivered", "Cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "customerName", "customerPhone", "deliveryAddress", "itemsSummary", "itemLines", "totalAmount", "paymentMethod", "status", "createdAt", "updatedAt"]
+    },
+    "Enquiry": {
+      "title": "Enquiry",
+      "description": "Customer enquiry submitted via storefront or WhatsApp concierge.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "enquiryType": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "Replied", "Closed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "customerName", "enquiryType", "subject", "message", "status", "createdAt", "updatedAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Registered administrator record.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/store_config/{configId}": {
+      "schema": { "$ref": "#/entities/StoreConfig" },
+      "description": "Global optical boutique configuration and storefront banners."
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Eyewear and lens product catalogue."
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": { "$ref": "#/entities/Testimonial" },
+      "description": "Customer testimonials and Google reviews."
+    },
+    "/appointments/{appointmentId}": {
+      "schema": { "$ref": "#/entities/Appointment" },
+      "description": "Eye test booking appointments scoped per user and admin."
+    },
+    "/prescriptions/{prescriptionId}": {
+      "schema": { "$ref": "#/entities/Prescription" },
+      "description": "Private optical prescription records scoped strictly to owner and admin."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer eyewear orders scoped per user and admin."
+    },
+    "/enquiries/{enquiryId}": {
+      "schema": { "$ref": "#/entities/Enquiry" },
+      "description": "Customer enquiries scoped per user and admin."
+    },
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin role registry."
+    }
+  }
+}

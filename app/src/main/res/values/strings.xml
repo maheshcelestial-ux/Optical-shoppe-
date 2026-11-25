@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Atelier Optic</string>
+    <string name="hero_headline">See Better. Look Better. Live Better.</string>
+    <string name="hero_subheadline">Handcrafted optical frames, precision clinical eye exams, and bespoke ophthalmic lenses.</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="shop_now">Shop Now</string>
+    <string name="book_eye_test">Book Your Eye Test</string>
+    <string name="whatsapp_concierge">WhatsApp Concierge</string>
+</resources>
